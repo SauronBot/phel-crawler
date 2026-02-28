@@ -1,6 +1,0 @@
-(ns phel-crawler\debug)
-(when-not *build-mode*
-  (let [argv (php/aget php/$_SERVER "argv")]
-    (println "argv count:" (php/count argv))
-    (foreach [a argv]
-      (println " >" a))))
