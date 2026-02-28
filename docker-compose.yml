@@ -1,11 +1,12 @@
 version: "3.8"
 
 services:
-  phel_cli_skeleton:
+  crawler:
     build:
       context: .
       dockerfile: build/Dockerfile
-    container_name: phel_cli_skeleton
-    hostname: php
+    container_name: phel-crawler
     volumes:
-      - .:/srv/phel-cli-skeleton:delegated
+      - .:/app:delegated
+    # Override CMD to pass args:
+    # docker compose run crawler https://example.com --max-pages 50
