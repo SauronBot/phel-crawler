@@ -1,0 +1,35 @@
+(ns phel-crawler\tests\parser-test
+  (:require phel\test :refer [deftest is])
+  (:require phel-crawler\modules\parser :as parser))
+
+(deftest test-is-html
+  (is (true? (parser/is-html? "text/html; charset=utf-8")))
+  (is (false? (parser/is-html? "application/json")))
+  (is (true? (parser/is-html? "TEXT/HTML"))))
+
+(deftest test-normalize-url
+  (is (= "https://example.com/page"
+         (parser/normalize-url "https://example.com" "https://example.com/page")))
+  (is (= "https://example.com/docs"
+         (parser/normalize-url "https://example.com/page" "/docs")))
+  (is (= nil (parser/normalize-url "https://example.com" "#section")))
+  (is (= nil (parser/normalize-url "https://example.com" "mailto:foo@bar.com")))
+  (is (= nil (parser/normalize-url "https://example.com" "javascript:void(0)"))))
+
+(deftest test-same-domain
+  (is (true? (parser/same-domain? "https://example.com/a" "https://example.com/b")))
+  (is (false? (parser/same-domain? "https://example.com" "https://other.com"))))
+
+(deftest test-extract-title
+  (is (= "Hello"
+         (parser/extract-title "<html><head><title>Hello</title></head></html>")))
+  (is (= ""
+         (parser/extract-title "<html><body>no title</body></html>"))))
+
+(deftest test-extract-links
+  (let [html  "<html><a href='/about'>About</a><a href='https://other.com'>Other</a></html>"
+        links (parser/extract-links "https://example.com" html)]
+    (is (= 2 (count links))))
+  (let [html  "<html><a href=''>Empty</a><a href='/real'>Real</a></html>"
+        links (parser/extract-links "https://example.com" html)]
+    (is (= 1 (count links)))))
