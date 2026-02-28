@@ -1,7 +1,7 @@
 # phel-crawler
 
 [![CI](https://github.com/SauronBot/phel-crawler/actions/workflows/ci.yml/badge.svg)](https://github.com/SauronBot/phel-crawler/actions)
-[![PHP >=8.3](https://img.shields.io/badge/PHP-%3E%3D8.3-blue)](https://www.php.net/)
+[![PHP >=8.4](https://img.shields.io/badge/PHP-%3E%3D8.4-blue)](https://www.php.net/)
 [![Phel](https://img.shields.io/badge/Phel-lang-purple)](https://phel-lang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -21,7 +21,7 @@ Built to explore PHP interoperability in Phel using real-world libraries:
 
 ## Requirements
 
-- PHP >= 8.3 with extensions: `curl`, `xml`, `mbstring`, `dom`
+- PHP >= 8.4 with extensions: `curl`, `xml`, `mbstring`, `dom`
 - [Composer](https://getcomposer.org/)
 
 ## Install
