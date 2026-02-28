@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "81c3caf1e9bb864707e8dae8d5d4e276",
+    "content-hash": "3c58fd219ab87963a2b4acebaa4d444e",
     "packages": [
         {
             "name": "gacela-project/container",
@@ -945,6 +945,46 @@
                 "source": "https://github.com/ralouphie/getallheaders/tree/develop"
             },
             "time": "2019-03-08T08:55:37+00:00"
+        },
+        {
+            "name": "smeghead/phel-getopt",
+            "version": "v0.0.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/smeghead/phel-getopt.git",
+                "reference": "4426d71253adc7429dbc03ecfb6a8fa90052b1fd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/smeghead/phel-getopt/zipball/4426d71253adc7429dbc03ecfb6a8fa90052b1fd",
+                "reference": "4426d71253adc7429dbc03ecfb6a8fa90052b1fd",
+                "shasum": ""
+            },
+            "require": {
+                "phel-lang/phel-lang": ">=0.28 <1.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Smeghead\\PhelGetopt\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "smeghead",
+                    "email": "smeghead7@gmail.com"
+                }
+            ],
+            "description": "parse CLI arguments and options.",
+            "support": {
+                "issues": "https://github.com/smeghead/phel-getopt/issues",
+                "source": "https://github.com/smeghead/phel-getopt/tree/v0.0.6"
+            },
+            "time": "2026-01-28T13:07:19+00:00"
         },
         {
             "name": "symfony/console",
