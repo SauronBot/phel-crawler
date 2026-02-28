@@ -1,7 +1,17 @@
-## 📚 Description
+## What
 
-Replace this text with a short description of your feature/bugfix. 
+<!-- What does this PR do? -->
 
-## 🔖 Changes
+## Why
 
-- List individual changes in more detail
+<!-- Why is this needed? -->
+
+## How
+
+<!-- How does it work? Any notable implementation decisions? -->
+
+## Checklist
+
+- [ ] Tests added or updated
+- [ ] `composer test` passes
+- [ ] Docs updated if behaviour changed

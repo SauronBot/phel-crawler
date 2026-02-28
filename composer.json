@@ -1,13 +1,15 @@
 {
-    "name": "phel-lang/cli-skeleton",
-    "description": "A minimalistic skeleton to build your cli-app using Phel Lang.",
+    "name": "sauronbot/phel-crawler",
+    "description": "Web crawler CLI written in Phel (Lisp on PHP) using Guzzle and Symfony DomCrawler",
     "keywords": [
         "phel",
+        "crawler",
+        "web-crawler",
         "lisp",
-        "functional",
-        "language"
+        "php",
+        "cli"
     ],
-    "homepage": "https://phel-lang.org/",
+    "homepage": "https://github.com/SauronBot/phel-crawler",
     "license": "MIT",
     "type": "project",
     "require": {
