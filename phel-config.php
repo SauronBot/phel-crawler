@@ -10,6 +10,5 @@ return (new PhelConfig())
     ->setSrcDirs(['src'])
     ->setTestDirs(['tests'])
     ->setVendorDir('vendor')
-    ->setErrorLogFile('data/error.log')
     ->setIgnoreWhenBuilding(['src/main.phel'])
     ->setKeepGeneratedTempFiles(false);
