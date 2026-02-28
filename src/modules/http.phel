@@ -1,0 +1,22 @@
+(ns phel-crawler\modules\http
+  (:use GuzzleHttp\Client))
+
+(defn make-client [timeout]
+  (php/new Client
+    (php/array
+      "timeout"         timeout
+      "connect_timeout" 5
+      "allow_redirects" (php/array "max" 5)
+      "verify"          false
+      "headers"         (php/array "User-Agent" "Phel-Crawler/1.0"))))
+
+(defn fetch-url [client url]
+  (try
+    (let [response     (php/-> client (get url))
+          status       (php/-> response (getStatusCode))
+          body-stream  (php/-> response (getBody))
+          body         (php/-> body-stream (getContents))
+          content-type (php/-> response (getHeaderLine "Content-Type"))]
+      {:ok true :url url :status status :body body :content-type content-type})
+    (catch \Throwable e
+      {:ok false :url url :error (php/-> e (getMessage))})))

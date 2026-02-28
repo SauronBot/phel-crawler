@@ -1,0 +1,77 @@
+(ns phel-crawler\modules\crawler
+  (:require phel-crawler\modules\http :as http)
+  (:require phel-crawler\modules\parser :as parser))
+
+(defn- crawlable? [visited url depth max-depth max-pages result-count same-domain start-url]
+  (and
+    (not (contains? visited url))
+    (< result-count max-pages)
+    (<= depth max-depth)
+    (or (not same-domain) (parser/same-domain? start-url url))
+    (or (php/str_starts_with url "http://")
+        (php/str_starts_with url "https://"))))
+
+(defn- enqueue-new-links [state links depth max-depth max-pages same-domain start-url base-url]
+  (let [visited (get state :visited)
+        queue   (get state :queue)
+        results (get state :results)
+        new-q   (var queue)]
+    (foreach [link links]
+      (let [norm (parser/normalize-url base-url link)]
+        (when (and norm (crawlable? visited norm (inc depth)
+                          max-depth max-pages (count results)
+                          same-domain start-url))
+          (swap! new-q conj [norm (inc depth)]))))
+    (assoc state :queue (deref new-q))))
+
+(defn- process-url [state client url depth opts on-page]
+  (let [max-depth   (get opts :max-depth 2)
+        max-pages   (get opts :max-pages 50)
+        same-domain (get opts :same-domain true)
+        start-url   (get opts :start-url "")
+        s           (assoc state :visited (conj (get state :visited) url))
+        res         (http/fetch-url client url)]
+    (if (not (get res :ok))
+      s
+      (let [ct    (get res :content-type)
+            body  (get res :body)
+            title (if (parser/is-html? ct) (parser/extract-title body) "")
+            page  {:url url :depth depth :status (get res :status) :title title}
+            s2    (assoc s :results (conj (get s :results) page))]
+        (on-page page)
+        (if (and (parser/is-html? ct)
+                 (< depth max-depth)
+                 (< (count (get s2 :results)) max-pages))
+          (enqueue-new-links s2 (parser/extract-links url body)
+            depth max-depth max-pages same-domain start-url url)
+          s2)))))
+
+(defn crawl [start-url opts on-page on-done]
+  (let [max-pages   (get opts :max-pages 50)
+        max-depth   (get opts :max-depth 2)
+        concurrency (get opts :concurrency 5)
+        timeout     (get opts :timeout 10)
+        same-domain (get opts :same-domain true)
+        opts+       (assoc opts :start-url start-url)
+        client      (http/make-client timeout)
+        state       (var {:visited #{} :queue [[start-url 0]] :results []})]
+
+    (loop []
+      (let [s (deref state)]
+        (when (and (not (empty? (get s :queue)))
+                   (< (count (get s :results)) max-pages))
+          (let [queue     (get s :queue)
+                batch     (take concurrency queue)
+                remaining (into [] (drop concurrency queue))
+                s2        (assoc s :queue remaining)]
+            (swap! state (fn [_] s2))
+            (foreach [[url depth] batch]
+              (let [cur (deref state)]
+                (when (crawlable? (get cur :visited) url depth
+                        max-depth max-pages (count (get cur :results))
+                        same-domain start-url)
+                  (swap! state process-url client url depth opts+ on-page)))))
+          (recur))))
+
+    (let [s (deref state)]
+      (on-done {:pages (count (get s :results)) :visited (count (get s :visited))}))))

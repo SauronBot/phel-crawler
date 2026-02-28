@@ -1,0 +1,66 @@
+(ns phel-crawler\modules\parser
+  (:use Symfony\Component\DomCrawler\Crawler))
+
+(defn extract-links [base-url html]
+  (try
+    (let [crawler (php/new Crawler html base-url)
+          anchors (php/-> crawler (filter "a[href]"))
+          raw     (php/-> anchors (extract (php/array "href")))
+          result  (var [])]
+      (foreach [href raw]
+        (when (and (not (php/is_null href)) (not (= href "")))
+          (swap! result conj href)))
+      (deref result))
+    (catch \Throwable _
+      [])))
+
+(defn extract-title [html]
+  (try
+    (let [crawler (php/new Crawler html)
+          titles  (php/-> crawler (filter "title"))]
+      (if (> (php/-> titles (count)) 0)
+        (php/trim (php/-> titles (text)))
+        ""))
+    (catch \Throwable _
+      "")))
+
+(defn is-html? [content-type]
+  (php/str_contains (php/strtolower content-type) "text/html"))
+
+(defn normalize-url [base href]
+  (try
+    (cond
+      (or (php/str_starts_with href "#")
+          (php/str_starts_with href "mailto:")
+          (php/str_starts_with href "javascript:")
+          (= href ""))
+      nil
+
+      (or (php/str_starts_with href "http://")
+          (php/str_starts_with href "https://"))
+      href
+
+      (php/str_starts_with href "//")
+      (let [scheme (php/parse_url base \PHP_URL_SCHEME)]
+        (str scheme ":" href))
+
+      (php/str_starts_with href "/")
+      (let [parsed (php/parse_url base)
+            scheme (php/aget parsed "scheme")
+            host   (php/aget parsed "host")]
+        (str scheme "://" host href))
+
+      :else
+      (let [base-dir (php/dirname (php/parse_url base \PHP_URL_PATH))
+            scheme   (php/parse_url base \PHP_URL_SCHEME)
+            host     (php/parse_url base \PHP_URL_HOST)]
+        (str scheme "://" host base-dir "/" href)))
+    (catch \Throwable _
+      nil)))
+
+(defn same-domain? [base url]
+  (try
+    (= (php/parse_url base \PHP_URL_HOST)
+       (php/parse_url url \PHP_URL_HOST))
+    (catch \Throwable _
+      false)))

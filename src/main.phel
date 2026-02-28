@@ -1,0 +1,88 @@
+(ns phel-crawler\main
+  (:require phel-crawler\modules\crawler :as crawler))
+
+(defn- parse-args [args]
+  (let [n    (php/count args)
+        url  (var nil)
+        opts (var {:max-pages 50 :max-depth 2 :concurrency 5 :timeout 10 :same-domain true})
+        i    (var 0)]
+    (loop []
+      (when (< (deref i) n)
+        (let [arg (php/aget args (deref i))]
+          (cond
+            (= arg "--max-pages")
+            (do (swap! i inc)
+                (when (< (deref i) n)
+                  (swap! opts assoc :max-pages (php/intval (php/aget args (deref i)))))
+                (swap! i inc))
+            (= arg "--max-depth")
+            (do (swap! i inc)
+                (when (< (deref i) n)
+                  (swap! opts assoc :max-depth (php/intval (php/aget args (deref i)))))
+                (swap! i inc))
+            (= arg "--concurrency")
+            (do (swap! i inc)
+                (when (< (deref i) n)
+                  (swap! opts assoc :concurrency (php/intval (php/aget args (deref i)))))
+                (swap! i inc))
+            (= arg "--timeout")
+            (do (swap! i inc)
+                (when (< (deref i) n)
+                  (swap! opts assoc :timeout (php/intval (php/aget args (deref i)))))
+                (swap! i inc))
+            (= arg "--all-domains")
+            (do (swap! opts assoc :same-domain false)
+                (swap! i inc))
+            :else
+            (do (set! url arg)
+                (swap! i inc))))
+        (recur)))
+    {:url (deref url) :opts (deref opts)}))
+
+(defn- truncate [s n]
+  (if (> (php/strlen s) n)
+    (str (php/substr s 0 (- n 3)) "...")
+    s))
+
+(defn- print-usage []
+  (println "Usage: phel run src/main.phel <url> [options]\n")
+  (println "Options:")
+  (println "  --max-pages N    Max pages to crawl     (default: 50)")
+  (println "  --max-depth N    Max link depth          (default: 2)")
+  (println "  --concurrency N  Concurrent requests     (default: 5)")
+  (println "  --timeout N      Request timeout seconds (default: 10)")
+  (println "  --all-domains    Follow links to other domains\n")
+  (println "Example:")
+  (println "  phel run src/main.phel https://example.com --max-pages 50 --max-depth 2"))
+
+(defn- run []
+  (let [argv   (php/aget php/$_SERVER "argv")
+        args   (php/array_slice argv 3)
+        parsed (parse-args args)
+        url    (get parsed :url)
+        opts   (get parsed :opts)]
+    (if (php/is_null url)
+      (do (println "Error: URL is required.\n")
+          (print-usage))
+      (let [start (php/microtime true)]
+        (println (str "\nCrawling: " url))
+        (println (str "  max-pages=" (get opts :max-pages)
+                      "  max-depth=" (get opts :max-depth)
+                      "  concurrency=" (get opts :concurrency)))
+        (println (php/str_repeat "-" 72))
+        (crawler/crawl url opts
+          (fn [page]
+            (println (str "  [" (get page :status) "] d=" (get page :depth)
+                          "  " (truncate (if (= (get page :title) "") "(no title)" (get page :title)) 50)))
+            (println (str "       " (truncate (get page :url) 68))))
+          (fn [summary]
+            (let [elapsed (php/round (- (php/microtime true) start) 2)]
+              (println (php/str_repeat "-" 72))
+              (println (str "\nDone in " elapsed "s  |  pages: "
+                            (get summary :pages)
+                            "  visited: " (get summary :visited))))))))))
+
+(when-not *build-mode*
+  (when (not (php/defined "PHEL_CRAWLER_RUNNING"))
+    (php/define "PHEL_CRAWLER_RUNNING" true)
+    (run)))

@@ -1,0 +1,9 @@
+(ns phel-crawler\debug3
+  (:require phel-crawler\modules\http :as http))
+(when-not *build-mode*
+  (let [client (http/make-client 10)
+        res    (http/fetch-url client "https://example.com")]
+    (println "ok?" (get res :ok))
+    (println "status:" (get res :status))
+    (println "ct:" (get res :content-type))
+    (println "body-len:" (php/strlen (get res :body)))))

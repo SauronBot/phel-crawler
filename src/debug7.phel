@@ -1,0 +1,16 @@
+(ns phel-crawler\debug7
+  (:require phel-crawler\modules\http :as http)
+  (:require phel-crawler\modules\parser :as parser))
+(when-not *build-mode*
+  (let [client (http/make-client 10)
+        url    "https://bashunit.typeddevs.com"
+        res    (http/fetch-url client url)
+        links  (parser/extract-links url (get res :body))]
+    (println "links found:" (count links))
+    (foreach [l (take 5 links)]
+      (println " raw:" l))
+    (println "---")
+    (foreach [l (take 5 links)]
+      (let [norm (parser/normalize-url url l)]
+        (println " norm:" norm)
+        (println " same-domain?" (parser/same-domain? url norm))))))
